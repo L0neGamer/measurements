@@ -48,16 +48,10 @@ instance RealFrac n => Area Acre n where
           ((distVal $toMetre $ Foot (66 :: Rational)) *
            (distVal $toMetre $ Foot (660 :: Rational)))
 
-instance (RealFrac n, Distance s n, Distance s Rational) =>
-         Area (Square s) n where
-  toMetric (SquareArea v) = SquareArea $ v * sideLengthSquared
+instance (RealFrac n, Distance s n) => Area (Square s) n where
+  toMetric (SquareArea v) = area $ v * sideLengthSquared
     where
-      sideLengthSquared =
-        (fromRational $
-         distVal $
-         (toMetre :: s Rational -> Metre Rational) $
-         (dist :: Rational -> s Rational) 1) ^
-        2
+      sideLengthSquared = (distVal $ (toMetre :: s n -> Metre n) $ dist 1) ^ 2
 
 class (RealFrac n, Scalar a n) =>
       Area a n
