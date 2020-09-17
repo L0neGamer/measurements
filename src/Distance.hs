@@ -60,37 +60,42 @@ instance RealFrac n => Scalar AU n where
   suffix _ = "AU"
   scalarVal (AU v) = v
 
-instance forall n. RealFrac n => Distance Metre n where
-  toMetre = id
+instance RealFrac n => Distance Metre n where
+  fromMetreConst = dist 1
 
 instance RealFrac n => Distance Yard n where
-  toMetre (Yard v) = Metre (0.9144 * v)
+  fromMetreConst = dist $ 1 / 0.9144
 
 instance RealFrac n => Distance Inch n where
-  toMetre (Inch v) = Metre (0.0254 * v)
+  fromMetreConst = dist $ 1 / 0.0254
 
 instance RealFrac n => Distance Foot n where
-  toMetre (Foot v) = Metre (0.3048 * v)
+  fromMetreConst = dist $ 1 / 0.3048
 
 instance RealFrac n => Distance Mile n where
-  toMetre (Mile v) = Metre (1609.344 * v)
+  fromMetreConst = dist $ 1 / 1609.344
 
 instance RealFrac n => Distance AU n where
-  toMetre (AU v) = Metre (149597870700 * v)
+  fromMetreConst = dist $ 1 / 149597870700
 
 class (RealFrac n, Scalar s n) =>
       Distance s n
   where
   toMetre :: s n -> Metre n
-  toMetre v = Metre $ distVal v / (distVal ((fromMetre (Metre 1)) :: s n))
+  toMetre v =
+    dist $
+    fromRational $
+    (toRational $ distVal v) / (toRational $ distVal (fromMetreConst :: s n))
   fromMetre :: Metre n -> s n
-  fromMetre (Metre v) = dist $ v / (distVal $ toMetre $ (dist 1 :: s n))
-  toMetreConst :: s n -> n
-  toMetreConst _ = (distVal $ toMetre $ (dist 1 :: s n))
+  fromMetre (Metre v) =
+    dist $
+    fromRational $
+    (toRational v) * (toRational $ distVal (fromMetreConst :: s n))
+  fromMetreConst :: s n
   convertBetweenDistance :: Distance s' n => s' n -> s n
   convertBetweenDistance = fromMetre . toMetre
   dist :: n -> s n
   dist = scalar
   distVal :: s n -> n
   distVal = scalarVal
-  {-# MINIMAL toMetre | fromMetre #-}
+  {-# MINIMAL fromMetreConst #-}
